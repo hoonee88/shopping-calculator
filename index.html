@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="직구 계산기">
+    <meta name="description" content="해외직구 비용 계산기 - 관세, 부가세, 환율을 포함한 최종 비용 계산">
+    <title>직구 비용 계산기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --primary-hover: #5b4cc4;
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-color: #2d3436;
+            --text-secondary: #636e72;
+            --border-color: #dfe6e9;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem;
+            padding-top: max(1.5rem, env(safe-area-inset-top));
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+        }
+
+        .radio-card {
+            cursor: pointer;
+            position: relative;
+            height: 100%;
+        }
+
+        .input-section,
+        .result-section {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background-color: #fff;
+            -webkit-appearance: none;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .rate-help {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (min-width: 480px) {
+            .rate-help {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .naver-link {
+            font-size: 0.8rem;
+            color: #2db400;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .naver-link:hover {
+            text-decoration: underline;
+        }
+
+        .radio-card input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.2s;
+            min-height: 90px;
+            height: 100%;
+        }
+
+        .radio-card .icon {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .radio-card .text {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .radio-card input:checked~.card-content {
+            border-color: var(--primary-color);
+            background-color: #f0edff;
+            color: var(--primary-color);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            height: 22px;
+            width: 22px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-right: 10px;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .checkbox-container:hover input~.checkmark {
+            background-color: #ccc;
+        }
+
+        .checkbox-container input:checked~.checkmark {
+            background-color: var(--primary-color);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked~.checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 8px;
+            top: 4px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .rate-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rate-input-group input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-small {
+            padding: 0 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-small:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-small:active {
+            transform: scale(0.98);
+        }
+
+        .btn-small:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-card h2 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.75rem;
+        }
+
+        .total-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .total-amount .unit {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .breakdown-item span:last-child {
+            font-weight: 600;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        .rate-status {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 0.3rem;
+        }
+
+        .rate-status.success {
+            color: #00b894;
+        }
+
+        .rate-status.error {
+            color: #d63031;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Shopping Calculator</h1>
+            <p>직구 비용 계산기</p>
+        </header>
+
+        <main>
+            <div class="calculator-grid">
+                <section class="input-section">
+                    <div class="form-group">
+                        <label for="currency">통화 (Currency)</label>
+                        <div class="currency-wrapper">
+                            <select id="currency">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="JPY">JPY (¥)</option>
+                                <option value="CNY">CNY (¥)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">상품 가격 (Price)</label>
+                        <input type="number" id="price" placeholder="0" step="0.01" inputmode="decimal">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="discount">할인율 (Discount %)</label>
+                        <input type="number" id="discount" placeholder="0" max="100" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shipping">배송비 (Shipping)</label>
+                        <input type="number" id="shipping" placeholder="0" step="0.01" inputmode="decimal">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exchangeRate">환율 (1외화 → 원)</label>
+                        <div class="rate-input-group">
+                            <input type="number" id="exchangeRate" placeholder="예: 1450" step="0.1" inputmode="decimal">
+                            <button id="btnGetRate" class="btn-small" type="button">환율</button>
+                        </div>
+                        <div class="rate-help">
+                            <small class="hint">버튼 클릭 시 실시간 환율 적용</small>
+                            <a href="https://finance.naver.com/marketindex/exchangeList.naver" target="_blank"
+                                class="naver-link">네이버 환율 ></a>
+                        </div>
+                        <div id="rateStatus" class="rate-status"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>품목 (Category)</label>
+                        <div class="radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="category" value="bag" checked>
+                                <span class="card-content">
+                                    <span class="icon">👜</span>
+                                    <span class="text">가방 (8%)</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="category" value="clothing">
+                                <span class="card-content">
+                                    <span class="icon">👟</span>
+                                    <span class="text">신발/의류 (13%)</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="category" value="none">
+                                <span class="card-content">
+                                    <span class="icon">🚫</span>
+                                    <span class="text">해당없음 (0%)</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="fta">
+                            <span class="checkmark"></span>
+                            FTA 적용 (관세 0%)
+                        </label>
+                    </div>
+                </section>
+
+                <section class="result-section">
+                    <div class="result-card">
+                        <h2>최종 예상 비용</h2>
+                        <div class="total-amount">
+                            <span id="totalCost">0</span> <span class="unit">KRW</span>
+                        </div>
+
+                        <div class="breakdown">
+                            <div class="breakdown-item">
+                                <span>할인 적용가 (외화)</span>
+                                <span id="discountedPrice">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>물품 대금 (KRW)</span>
+                                <span id="basePrice">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>관세 (Duty)</span>
+                                <span id="dutyAmount">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>부가세 (VAT 10%)</span>
+                                <span id="vatAmount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const inputs = {
+            price: document.getElementById('price'),
+            discount: document.getElementById('discount'),
+            shipping: document.getElementById('shipping'),
+            exchangeRate: document.getElementById('exchangeRate'),
+            currency: document.getElementById('currency'),
+            fta: document.getElementById('fta'),
+            category: document.getElementsByName('category')
+        };
+
+        const display = {
+            totalCost: document.getElementById('totalCost'),
+            discountedPrice: document.getElementById('discountedPrice'),
+            basePrice: document.getElementById('basePrice'),
+            dutyAmount: document.getElementById('dutyAmount'),
+            vatAmount: document.getElementById('vatAmount')
+        };
+
+        const btnGetRate = document.getElementById('btnGetRate');
+        const rateStatus = document.getElementById('rateStatus');
+
+        // 폴백 환율 (API 실패시 사용)
+        const fallbackRates = {
+            USD: 1450,
+            EUR: 1580,
+            GBP: 1830,
+            JPY: 9.5,
+            CNY: 200
+        };
+
+        function getCategoryRate() {
+            let selectedRate = 0;
+            inputs.category.forEach(radio => {
+                if (radio.checked) {
+                    if (radio.value === 'bag') selectedRate = 0.08;
+                    else if (radio.value === 'clothing') selectedRate = 0.13;
+                    else if (radio.value === 'none') selectedRate = 0;
+                    else selectedRate = 0.08;
+                }
+            });
+            return selectedRate;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ko-KR').format(Math.round(amount));
+        }
+
+        function showRateStatus(message, isSuccess) {
+            rateStatus.textContent = message;
+            rateStatus.className = 'rate-status ' + (isSuccess ? 'success' : 'error');
+        }
+
+        async function fetchExchangeRate() {
+            const currency = inputs.currency.value;
+            const originalText = btnGetRate.textContent;
+            btnGetRate.textContent = "...";
+            btnGetRate.disabled = true;
+            rateStatus.textContent = '';
+
+            try {
+                // 방법 1: ExchangeRate-API (무료, CORS 지원)
+                const response = await fetch(`https://open.er-api.com/v6/latest/${currency}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.result === 'success' && data.rates && data.rates.KRW) {
+                    const rate = data.rates.KRW;
+                    inputs.exchangeRate.value = rate.toFixed(2);
+                    showRateStatus(`✓ ${new Date().toLocaleTimeString('ko-KR')} 기준`, true);
+                    calculate();
+                } else {
+                    throw new Error('Rate not found');
+                }
+
+            } catch (e) {
+                console.error("Primary API failed, trying fallback:", e);
+
+                // 방법 2: 폴백 환율 사용
+                const fallbackRate = fallbackRates[currency];
+                if (fallbackRate) {
+                    inputs.exchangeRate.value = fallbackRate;
+                    showRateStatus(`⚠ 기본값 적용 (실시간 불가)`, false);
+                    calculate();
+                } else {
+                    showRateStatus('환율을 가져올 수 없습니다', false);
+                }
+            } finally {
+                btnGetRate.textContent = originalText;
+                btnGetRate.disabled = false;
+            }
+        }
+
+        function calculate() {
+            const price = parseFloat(inputs.price.value) || 0;
+            const discount = parseFloat(inputs.discount.value) || 0;
+            const shipping = parseFloat(inputs.shipping.value) || 0;
+            const rate = parseFloat(inputs.exchangeRate.value) || 0;
+            const isFta = inputs.fta.checked;
+
+            const discountedPrice = price * (1 - discount / 100);
+            const taxablePriceForeign = discountedPrice + shipping;
+            const basePriceKRW = taxablePriceForeign * rate;
+
+            let basicDuty = 0;
+            if (!isFta) {
+                basicDuty = basePriceKRW * getCategoryRate();
+            }
+
+            let luxurySurcharge = 0;
+            if (basePriceKRW > 2000000) {
+                luxurySurcharge = (basePriceKRW - 2000000) * 0.2 * 1.3;
+            }
+
+            const totalDuty = basicDuty + luxurySurcharge;
+            const vatAmount = (basePriceKRW + totalDuty) * 0.10;
+            const totalKRW = basePriceKRW + totalDuty + vatAmount;
+
+            display.discountedPrice.textContent = `${inputs.currency.value} ${discountedPrice.toFixed(2)}`;
+            display.basePrice.textContent = formatCurrency(basePriceKRW);
+            display.dutyAmount.textContent = formatCurrency(totalDuty);
+            display.vatAmount.textContent = formatCurrency(vatAmount);
+            display.totalCost.textContent = formatCurrency(totalKRW);
+        }
+
+        // Event Listeners
+        Object.values(inputs).forEach(input => {
+            if (input instanceof NodeList) {
+                input.forEach(radio => radio.addEventListener('change', calculate));
+            } else if (input) {
+                input.addEventListener('input', calculate);
+                input.addEventListener('change', calculate);
+            }
+        });
+
+        if (btnGetRate) {
+            btnGetRate.addEventListener('click', fetchExchangeRate);
+        }
+
+        // 통화 변경시 환율 초기화
+        inputs.currency.addEventListener('change', () => {
+            inputs.exchangeRate.value = '';
+            rateStatus.textContent = '';
+            calculate();
+        });
+
+        calculate();
+    </script>
+</body>
+
+</html>
