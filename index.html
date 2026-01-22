@@ -361,6 +361,7 @@
                             <select id="currency">
                                 <option value="USD">USD ($)</option>
                                 <option value="EUR">EUR (€)</option>
+                                <option value="KRW">KRW (₩)</option>
                             </select>
                         </div>
                     </div>
@@ -601,10 +602,19 @@
             btnGetRate.addEventListener('click', fetchExchangeRate);
         }
 
-        // 통화 변경시 환율 초기화
+        // 통화 변경시 환율 초기화 및 KRW 처리
         inputs.currency.addEventListener('change', () => {
-            inputs.exchangeRate.value = '';
-            rateStatus.textContent = '';
+            if (inputs.currency.value === 'KRW') {
+                inputs.exchangeRate.value = 1;
+                inputs.exchangeRate.disabled = true;
+                btnGetRate.disabled = true;
+                rateStatus.textContent = '원화는 환율 1 적용';
+            } else {
+                inputs.exchangeRate.value = '';
+                inputs.exchangeRate.disabled = false;
+                btnGetRate.disabled = false;
+                rateStatus.textContent = '';
+            }
             calculate();
         });
 
