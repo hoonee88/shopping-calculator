@@ -361,9 +361,6 @@
                             <select id="currency">
                                 <option value="USD">USD ($)</option>
                                 <option value="EUR">EUR (€)</option>
-                                <option value="GBP">GBP (£)</option>
-                                <option value="JPY">JPY (¥)</option>
-                                <option value="CNY">CNY (¥)</option>
                             </select>
                         </div>
                     </div>
@@ -489,10 +486,7 @@
         // 폴백 환율 (API 실패시 사용)
         const fallbackRates = {
             USD: 1450,
-            EUR: 1580,
-            GBP: 1830,
-            JPY: 9.5,
-            CNY: 200
+            EUR: 1580
         };
 
         function getCategoryRate() {
